@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:deepbags/models/website_filter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socks5_proxy/socks_server.dart';
 
 class Server {
@@ -52,13 +52,17 @@ class Server {
     await request.response.close();
   }
 
-  void createSocksServer() {
+  void createSocksServer() async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+
     final proxy = SocksServer();
 
     // Listen to all tcp and udp connections
     proxy.connections.listen((connection) async {
       // Uint8List rawBytes;
-      print("Host:${connection.desiredAddress.host}");
+      var webfitlters = WebsiteFilter.listFromStorage();
+
+      print("Host: ${connection.desiredAddress.host}");
 
       await connection.forward();
     }).onError(print);

@@ -3,41 +3,28 @@
 // This app will create the proxy that will be used
 import 'dart:convert';
 
-import 'package:deepbags/models/base_modal.dart';
+import 'package:deepbags/models/base_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Obtain shared preferences.
-enum FilterMode { allow, blow }
 
 class WebsiteFilter implements AbstractModal {
   String? id;
   String name;
-  DateTime? startTime;
-  DateTime? endTime;
-  FilterMode mode;
   String match;
-  WebsiteFilter(
-      {this.id,
-      this.name = "",
-      this.startTime,
-      this.endTime,
-      this.mode = FilterMode.blow,
-      this.match = "*"}) {
-    if (id == null) {
-      id = DateTime.now().millisecondsSinceEpoch.toString();
-    }
+  Map<String, InputFieldOptions> _inputFieldsOptions = {};
+  WebsiteFilter({this.id, this.name = "", this.match = "*"}) {
+    if (id == null) id = DateTime.now().millisecondsSinceEpoch.toString();
+    _inputFieldsOptions = {
+      "id": InputFieldOptions(label: 'Id', validators: []),
+      "name": InputFieldOptions(label: 'Name'),
+      "match": InputFieldOptions(label: 'Regex match'),
+    };
   }
 
   @override
   Map<String, InputFieldOptions> getFieldsOptions() {
-    return {
-      "id": InputFieldOptions(label: 'Id', validators: []),
-      "name": InputFieldOptions(label: 'Name'),
-      "startTime": InputFieldOptions(label: 'Start Time'),
-      "endTime": InputFieldOptions(label: 'End Time'),
-      "match": InputFieldOptions(label: 'Regex match'),
-      "mode": InputFieldOptions(label: 'Mode'),
-    };
+    return _inputFieldsOptions;
   }
 
   @override
@@ -45,10 +32,7 @@ class WebsiteFilter implements AbstractModal {
     return <String, dynamic>{
       'id': id,
       'name': name,
-      'startTime': startTime?.millisecondsSinceEpoch,
-      'endTime': endTime?.millisecondsSinceEpoch,
       'match': match,
-      'mode': mode,
     };
   }
 
@@ -65,10 +49,7 @@ class WebsiteFilter implements AbstractModal {
     return WebsiteFilter(
       id: map['id'] != null ? map['id'] as String : null,
       name: map['name'] as String,
-      startTime: DateTime.fromMicrosecondsSinceEpoch(map['startTime'] as int),
-      endTime: DateTime.fromMillisecondsSinceEpoch(map['endTime'] as int),
       match: map['match'] as String,
-      mode: map['mode'] as FilterMode,
     );
   }
 
@@ -98,5 +79,11 @@ class WebsiteFilter implements AbstractModal {
       websiteFilters = WebsiteFilter.listFromJson(filters);
     }
     return websiteFilters;
+  }
+
+  @override
+  updateFieldsOptions(Map<String, InputFieldOptions> targetedFieldsOptions) {
+    AbstractModel.mergeToInputOptions(
+        input: getFieldsOptions(), target: targetedFieldsOptions);
   }
 }
