@@ -1,8 +1,14 @@
 import 'dart:isolate';
-
-import 'package:deepbags/server.dart';
+import 'package:deepbags/server/server.dart';
 import 'package:deepbags/widgets/gradient_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class IsolateData {
+  RootIsolateToken token;
+  SendPort sendPort;
+  IsolateData({required this.token, required this.sendPort});
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,13 +38,19 @@ class _HomePageState extends State<HomePage> {
 
   void startBackgroundTask() async {
     ReceivePort port = ReceivePort();
+    var rootToken = RootIsolateToken.instance;
     setState(() {
       serverProcessPort = port;
     });
-    var result = await Isolate.spawn(_backgroundTask, port.sendPort);
+
+    var result = await Isolate.spawn(
+      _backgroundTask,
+      IsolateData(token: RootIsolateToken.instance!, sendPort: port.sendPort),
+      paused: false,
+    );
     port.listen((message) {
       if (message == "exit") {
-        Server.server?.close();
+        Server.closeSocksServer();
         if (result.terminateCapability != null) {
           result.kill(priority: Isolate.immediate);
         }
@@ -51,10 +63,10 @@ class _HomePageState extends State<HomePage> {
     if (serverProcessPort != null) serverProcessPort!.sendPort.send("exit");
   }
 
-  static void _backgroundTask(SendPort sendPort) async {
-    server = Server();
-    await server!.createServer();
-    sendPort.send('Task completed successfully!');
+  static void _backgroundTask(IsolateData isolateData) async {
+    BackgroundIsolateBinaryMessenger.ensureInitialized(isolateData.token);
+    await Server.createSocksServer();
+    isolateData.sendPort.send('Task completed successfully!');
   }
 
   @override

@@ -1,4 +1,19 @@
-enum InputType { text, number, email, password, date, time, select, checkbox }
+import 'package:deepbags/form_models/base_form_model.dart';
+import 'package:deepbags/database/models/base_model.dart';
+import 'package:flutter/material.dart';
+
+enum InputType {
+  text,
+  number,
+  email,
+  password,
+  date,
+  time,
+  select,
+  checkbox,
+  model,
+  modelArray,
+}
 
 class Options {
   String? label;
@@ -9,18 +24,20 @@ class Options {
   }
 }
 
-class InputFieldOptions {
+class InputFieldOptions<T extends BaseModel> {
   String label;
   InputType type;
   String? placeholder;
   String? helperText;
-  String? prefixIcon;
-  String? suffixIcon;
   bool? obscureText;
   bool? readOnly;
   bool? enabled;
   List<String? Function(String?) Function(String)>? validators;
   List<String> options; // Added options property
+  String? value;
+  BaseFormModel<T>? model;
+  Icon? prefixIcon;
+  Icon? suffixIcon;
 
   InputFieldOptions(
       {required this.label,
@@ -33,7 +50,9 @@ class InputFieldOptions {
       this.readOnly,
       this.enabled,
       this.validators,
-      this.options = const []});
+      this.options = const [],
+      this.value,
+      this.model});
   static InputFieldOptions mergeTwInputOptions(
       InputFieldOptions a, InputFieldOptions b) {
     return InputFieldOptions(

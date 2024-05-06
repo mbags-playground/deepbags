@@ -1,5 +1,6 @@
-import "package:deepbags/screens/filters/add_filters.dart";
 import "package:deepbags/screens/home.dart";
+import "package:deepbags/screens/session/add_session.dart";
+import "package:deepbags/screens/session/view_filters.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 
@@ -8,33 +9,6 @@ final router = GoRouter(routes: <RouteBase>[
       builder: (BuildContext context, GoRouterState state, Widget child) {
         return Scaffold(
           body: child,
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                const DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                  ),
-                  child: Text('Drawer Header'),
-                ),
-                ListTile(
-                  title: const Text('Item 1'),
-                  onTap: () {
-                    // Update the state of the app.
-                    // ...
-                  },
-                ),
-                ListTile(
-                  title: const Text('Item 2'),
-                  onTap: () {
-                    // Update the state of the app.
-                    // ...
-                  },
-                ),
-              ],
-            ),
-          ),
           bottomNavigationBar: BottomNavigationBar(
             items: [
               BottomNavigationBarItem(
@@ -49,16 +23,16 @@ final router = GoRouter(routes: <RouteBase>[
               BottomNavigationBarItem(
                 icon: IconButton(
                   onPressed: () {
-                    context.go('/add');
+                    context.go('/filters/add');
                   },
                   icon: const Icon(Icons.add),
                 ),
-                label: 'Filters',
+                label: 'Sessions',
               ),
               BottomNavigationBarItem(
                 icon: IconButton(
                   onPressed: () {
-                    context.go('/add');
+                    context.go('/filters/all');
                   },
                   icon: const Icon(Icons.settings),
                 ),
@@ -74,8 +48,12 @@ final router = GoRouter(routes: <RouteBase>[
           builder: (context, state) => const HomePage(),
         ),
         GoRoute(
-          path: '/add',
-          builder: (context, state) => const AddFlitter(),
+          path: '/filters/add',
+          builder: (context, state) => const AddSession(),
         ),
+        GoRoute(
+          path: '/filters/all',
+          builder: (context, state) => const AllSessions(),
+        )
       ])
 ]);

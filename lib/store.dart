@@ -1,34 +1,33 @@
-import 'package:deepbags/models/website_filter.dart';
+import 'package:deepbags/database/models/website.dart';
 
-enum Actions { addWebsiteFilter, removeWebsiteFilter, updateWebsiteFilter }
+enum Actions { addWebsite, removeWebsite, updateWebsite }
 
 class AppState {
-  List<WebsiteFilter> websiteFilters;
-  AppState({required this.websiteFilters});
+  List<Website> websites;
+  AppState({required this.websites});
 }
 
-class WebsiteFilterReducerAction {
+class WebsiteReducerAction {
   Actions type;
-  WebsiteFilter payload;
-  WebsiteFilterReducerAction({required this.type, required this.payload});
+  Website payload;
+  WebsiteReducerAction({required this.type, required this.payload});
 }
 
-AppState websiteFilterReducer(AppState state, dynamic action) {
+AppState websiteReducer(AppState state, dynamic action) {
   switch (action.type) {
-    case Actions.addWebsiteFilter:
+    case Actions.addWebsite:
+      return AppState(websites: [...state.websites, action.payload]);
+    case Actions.removeWebsite:
       return AppState(
-          websiteFilters: [...state.websiteFilters, action.payload]);
-    case Actions.removeWebsiteFilter:
-      return AppState(
-          websiteFilters: state.websiteFilters
-              .where((websiteFilter) => websiteFilter != action.payload)
+          websites: state.websites
+              .where((website) => website != action.payload)
               .toList());
-    // case Actions.updateWebsiteFilter:
+    // case Actions.updateWebsite:
     //   return AppState(
-    //       WebsiteFilters: state.websiteFilters
-    //           .map((WebsiteFilter) => WebsiteFilter == action.payload
+    //       Websites: state.websites
+    //           .map((Website) => Website == action.payload
     //               ? action.payload
-    //               : WebsiteFilter)
+    //               : Website)
     //           .toList());
     default:
       return state;

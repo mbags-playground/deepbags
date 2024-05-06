@@ -1,11 +1,12 @@
-import 'package:deepbags/models/base_modal.dart';
-import 'package:deepbags/widgets/Input.dart';
+import 'package:deepbags/form_models/base_form_model.dart';
+import 'package:deepbags/database/models/base_model.dart';
 import 'package:deepbags/widgets/button.dart';
+import 'package:deepbags/widgets/input.dart';
 import 'package:flutter/material.dart';
 
-class ClassToForm extends StatefulWidget {
-  AbstractModal formClass;
-  Function(AbstractModal value) onSubmit;
+class ClassToForm<T extends BaseModel> extends StatefulWidget {
+  BaseFormModel<T> formClass;
+  Function(Map<String, dynamic> value)? onSubmit;
   String actionText;
   String title;
   List<String>? hide;
@@ -17,7 +18,7 @@ class ClassToForm extends StatefulWidget {
       required this.title,
       required this.actionText,
       this.hide}) {
-    formClass.getFieldsOptions()?.forEach((key, value) {
+    formClass.getFieldsOptions().forEach((key, value) {
       if (hide != null && hide!.contains(key)) return;
       controllers[key] = TextEditingController();
       // controllers[key]?.text = formClass.toMap()?[key];
@@ -29,31 +30,50 @@ class ClassToForm extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<ClassToForm> {
+  getFields() {
+    return widget.formClass.getFieldsOptions();
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Widget> fields = [];
-    widget.formClass.getFieldsOptions()?.forEach((key, value) {
+    var fieldOptions = getFields();
+    fieldOptions?.forEach((key, value) {
       if (widget.hide != null && widget.hide!.contains(key)) return;
-      if (widget.formClass.toMap()?[key] != null)
+      if (widget.formClass.model?.toJson()[key] != null) {
         widget.controllers[key]!.text =
-            widget.formClass.toMap()![key].toString();
+            widget.formClass.model!.toJson()[key].toString();
+      }
       fields.add(StyledInput(
         controller: widget.controllers[key]!,
         options: value,
       ));
     });
+    var formKey = GlobalKey<FormState>();
     return SingleChildScrollView(
       child: Container(
         padding: const EdgeInsets.all(20),
         child: Form(
+            key: formKey,
             child: Wrap(
-          runSpacing: 20,
-          children: [
-            Text(widget.title),
-            ...fields,
-            StyledButton(onPressed: () => {}, child: Text(widget.actionText))
-          ],
-        )),
+              runSpacing: 20,
+              children: [
+                Text(widget.title),
+                ...fields,
+                if (widget.onSubmit != null)
+                  StyledButton(
+                      onPressed: () {
+                        Map<String, dynamic> values = {};
+                        for (var e in widget.controllers.keys) {
+                          values[e] = widget.controllers[e]!.text;
+                        }
+                        if (!formKey.currentState!.validate()) return;
+
+                        if (widget.onSubmit != null) widget.onSubmit!(values);
+                      },
+                      child: Text(widget.actionText))
+              ],
+            )),
       ),
     );
   }
