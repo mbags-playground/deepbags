@@ -1,29 +1,29 @@
 import 'dart:convert';
 
-import 'package:deepbags/database/models/website.dart';
+import 'package:deepbags/models/website.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class WebsiteRepository {
+class WebsiteModelRepository {
   @override
   String key = "websites";
-  List<Website> websites = [];
+  List<WebsiteModel> websites = [];
   @override
-  saveToStorage(Website model) async {
+  saveToStorage(WebsiteModel model) async {
     // Obtain shared preferences.
     final prefs = await SharedPreferences.getInstance();
-    List<Website> websiteFilters = await listFromStorage();
+    List<WebsiteModel> websiteFilters = await listFromStorage();
     websiteFilters.add(model);
-    prefs.setString(key, json.encode(Website.listToJson(websiteFilters)));
+    prefs.setString(key, json.encode(WebsiteModel.listToJson(websiteFilters)));
     return true;
   }
 
   @override
   listFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
-    List<Website> websiteFilters = [];
+    List<WebsiteModel> websiteFilters = [];
     String? filters = prefs.getString(key);
     if (filters != null) {
-      websiteFilters = Website.listFromJson(filters);
+      websiteFilters = WebsiteModel.listFromJson(filters);
     }
     return websiteFilters;
   }

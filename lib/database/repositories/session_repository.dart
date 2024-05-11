@@ -1,6 +1,5 @@
 import 'dart:convert';
-
-import 'package:deepbags/database/models/session.dart';
+import 'package:deepbags/models/session.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SessionRepository {
@@ -30,7 +29,7 @@ class SessionRepository {
     return true;
   }
 
-  Future<SessionModel> getSessionById(int id) async {
+  Future<SessionModel> getSessionById(String id) async {
     sessions = await listFromStorage();
     return sessions.where((session) => session.id == id).first;
   }

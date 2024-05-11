@@ -13,18 +13,16 @@ SessionModel _$SessionModelFromJson(Map<String, dynamic> json) => SessionModel(
           : DateTime.parse(json['startTime'] as String),
       mode: $enumDecodeNullable(_$FilterModeEnumMap, json['mode']) ??
           FilterMode.block,
-      id: json['id'] as int?,
+      id: json['id'] as String?,
       lengthInMinutes: json['lengthInMinutes'] as int? ?? 60,
       websites: (json['websites'] as List<dynamic>?)
-              ?.map((e) => Website.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => WebsiteModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      key: json['key'] as String? ?? "SessionModel",
     );
 
 Map<String, dynamic> _$SessionModelToJson(SessionModel instance) =>
     <String, dynamic>{
-      'key': instance.key,
       'id': instance.id,
       'name': instance.name,
       'startTime': instance.startTime?.toIso8601String(),

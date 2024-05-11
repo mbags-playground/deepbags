@@ -1,46 +1,19 @@
+import "package:deepbags/database/database.dart";
+import "package:deepbags/layout.dart";
+import "package:deepbags/screens/add_session.dart";
 import "package:deepbags/screens/home.dart";
-import "package:deepbags/screens/session/add_session.dart";
-import "package:deepbags/screens/session/view_filters.dart";
+import "package:deepbags/screens/login.dart";
+import "package:deepbags/screens/not_found.dart";
+import "package:deepbags/screens/sessions.dart";
+import "package:deepbags/screens/update_session.dart";
+import "package:deepbags/widgets/loading.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 
 final router = GoRouter(routes: <RouteBase>[
   ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        return Scaffold(
-          body: child,
-          bottomNavigationBar: BottomNavigationBar(
-            items: [
-              BottomNavigationBarItem(
-                icon: IconButton(
-                  icon: const Icon(Icons.home),
-                  onPressed: () {
-                    context.go('/');
-                  },
-                ),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: IconButton(
-                  onPressed: () {
-                    context.go('/filters/add');
-                  },
-                  icon: const Icon(Icons.add),
-                ),
-                label: 'Sessions',
-              ),
-              BottomNavigationBarItem(
-                icon: IconButton(
-                  onPressed: () {
-                    context.go('/filters/all');
-                  },
-                  icon: const Icon(Icons.settings),
-                ),
-                label: 'Settings',
-              ),
-            ],
-          ),
-        );
+        return Layout(child: child);
       },
       routes: [
         GoRoute(
@@ -48,12 +21,38 @@ final router = GoRouter(routes: <RouteBase>[
           builder: (context, state) => const HomePage(),
         ),
         GoRoute(
-          path: '/filters/add',
-          builder: (context, state) => const AddSession(),
+          path: '/login',
+          builder: (context, state) => GoogleLoginPage(),
         ),
         GoRoute(
-          path: '/filters/all',
-          builder: (context, state) => const AllSessions(),
-        )
+            path: "/sessions",
+            builder: (context, state) => const SessionsListPage(),
+            routes: [
+              GoRoute(
+                path: 'add',
+                builder: (context, state) => AddSessionPage(),
+              ),
+              GoRoute(
+                  path: ':sessionId/update',
+                  builder: (context, state) {
+                    String? sessionId = state.pathParameters['sessionId'];
+                    if (sessionId != null) {
+                      var fetchSession =
+                          sessionRepository.getSessionById(sessionId);
+                      return FutureBuilder(
+                          future: fetchSession,
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              return ManageWebsitesPage(
+                                  session: snapshot.data!);
+                            } else if (snapshot.hasError) {
+                              return const NotFoundPage();
+                            }
+                            return LoadingWidget();
+                          });
+                    }
+                    return const NotFoundPage();
+                  })
+            ])
       ])
 ]);

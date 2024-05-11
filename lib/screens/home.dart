@@ -1,14 +1,5 @@
-import 'dart:isolate';
-import 'package:deepbags/server/server.dart';
-import 'package:deepbags/widgets/gradient_text.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-class IsolateData {
-  RootIsolateToken token;
-  SendPort sendPort;
-  IsolateData({required this.token, required this.sendPort});
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,89 +9,82 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool _isActive = false;
-  ReceivePort? serverProcessPort;
-  static Server? server;
+  bool _focusModeEnabled = false;
+  Duration _sessionDuration = Duration(hours: 1);
+  Duration _remainingTime = Duration(hours: 1);
 
-  toggleSwitch(bool value) {
-    if (_isActive == false) {
-      setState(() {
-        _isActive = true;
-      });
-      startBackgroundTask();
-    } else {
-      stopBackgroundTask();
-      setState(() {
-        _isActive = false;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
   }
 
-  void startBackgroundTask() async {
-    ReceivePort port = ReceivePort();
-    var rootToken = RootIsolateToken.instance;
-    setState(() {
-      serverProcessPort = port;
-    });
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
-    var result = await Isolate.spawn(
-      _backgroundTask,
-      IsolateData(token: RootIsolateToken.instance!, sendPort: port.sendPort),
-      paused: false,
-    );
-    port.listen((message) {
-      if (message == "exit") {
-        Server.closeSocksServer();
-        if (result.terminateCapability != null) {
-          result.kill(priority: Isolate.immediate);
-        }
+  void _toggleFocusMode() {
+    setState(() {
+      _focusModeEnabled = !_focusModeEnabled;
+      if (_focusModeEnabled) {
+        _startTimer();
+      } else {
+        _remainingTime = Duration(hours: 0);
       }
     });
   }
 
-  void stopBackgroundTask() async {
-    print(serverProcessPort.toString());
-    if (serverProcessPort != null) serverProcessPort!.sendPort.send("exit");
+  void _startTimer() {
+    _remainingTime = _sessionDuration;
+    Future.delayed(Duration(seconds: 1), () {
+      if (_focusModeEnabled) {
+        setState(() {
+          _remainingTime -= Duration(seconds: 1);
+        });
+        _startTimer();
+      }
+    });
   }
 
-  static void _backgroundTask(IsolateData isolateData) async {
-    BackgroundIsolateBinaryMessenger.ensureInitialized(isolateData.token);
-    await Server.createSocksServer();
-    isolateData.sendPort.send('Task completed successfully!');
+  String _formatTime(Duration duration) {
+    String minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    String seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: false,
-        title: GradientText(
-          text: "Deepbags",
-          gradient: LinearGradient(colors: [
-            const Color.fromARGB(255, 29, 39, 29),
-            Colors.blue.shade700,
-          ]),
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w300),
-        ),
+        title: Text('Focus Mode'),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Center(
-            child: GradientText(
-              text: "Deepbags",
-              gradient: LinearGradient(colors: [
-                Colors.green.shade300,
-                Colors.blue.shade700,
-              ]),
-              style:
-                  const TextStyle(fontSize: 38.0, fontWeight: FontWeight.w900),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              _focusModeEnabled ? 'Focus Mode Enabled' : 'Focus Mode Disabled',
+              style: TextStyle(fontSize: 24),
             ),
-          ),
-          Switch(value: _isActive, onChanged: toggleSwitch),
-          Text(_isActive ? "Active" : "Inactive")
-        ],
+            SizedBox(height: 20),
+            Text(
+              'Current Session: ${_sessionDuration.inHours} hours',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Remaining Time: ${_formatTime(_remainingTime)}',
+              style: TextStyle(fontSize: 20),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _toggleFocusMode,
+              child: Text(
+                  _focusModeEnabled ? 'End Focus Mode' : 'Start Focus Mode'),
+            ),
+          ],
+        ),
       ),
     );
   }

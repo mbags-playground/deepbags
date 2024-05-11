@@ -1,4 +1,5 @@
 import 'package:deepbags/routes.dart';
+import 'package:deepbags/theme.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatefulWidget {
@@ -15,10 +16,8 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Deep bags',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green.shade100),
-        useMaterial3: true,
-      ),
+      theme: themeData,
+      darkTheme: ThemeData.dark(),
       routerConfig: router,
     );
   }
